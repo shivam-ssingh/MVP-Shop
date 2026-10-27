@@ -1,0 +1,181 @@
+<div class="page">
+  <header class="head">
+    @if (step() === 'build') {
+      <a mat-icon-button routerLink="/staff" aria-label="Back to categories">
+        <mat-icon svgIcon="arrow_back" />
+      </a>
+    } @else {
+      <button mat-icon-button (click)="step.set('build')" aria-label="Back to the list">
+        <mat-icon svgIcon="arrow_back" />
+      </button>
+    }
+    <div>
+      <h1>{{ category()?.name ?? 'New request' }}</h1>
+      <p class="sub">
+        @if (step() === 'build') {
+          Add what's running low and how many are left on the shelf.
+        } @else {
+          Check the list, then send it to the manager.
+        }
+      </p>
+    </div>
+  </header>
+
+  @if (step() === 'build') {
+    <!-- Search ---------------------------------------------------------->
+    <div class="search">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-icon matPrefix svgIcon="search" />
+        <input
+          #search
+          matInput
+          type="search"
+          [placeholder]="category()?.productCount ? 'Search ' + category()!.name.toLowerCase() : 'Type a product name'"
+          aria-label="Find a product"
+          autocomplete="off"
+          enterkeyhint="search"
+          [matAutocomplete]="auto"
+          (input)="query.set(search.value)"
+        />
+      </mat-form-field>
+
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="optionLabel" (optionSelected)="onSelected($event)"
+                        class="product-options">
+        @for (o of options(); track o.kind === 'product' ? o.product.id : 'free') {
+          @if (o.kind === 'product') {
+            <mat-option [value]="o">
+              <span class="opt">
+                <span class="opt-name">{{ o.product.name }}</span>
+                <span class="opt-size">{{ o.product.size }}</span>
+                @if (o.added) {
+                  <mat-icon svgIcon="check" class="opt-added" aria-label="Already on the list" />
+                }
+              </span>
+            </mat-option>
+          } @else {
+            <mat-option [value]="o" class="free-text">
+              <span class="opt">
+                <mat-icon svgIcon="add" />
+                <span class="opt-name">Add “{{ o.name }}”</span>
+                <span class="opt-size">Not in the product list</span>
+              </span>
+            </mat-option>
+          }
+        }
+      </mat-autocomplete>
+    </div>
+
+    <!-- The list ---------------------------------------------------------->
+    @if (items().length) {
+      <ul class="items">
+        @for (item of items(); track item.key) {
+          <li class="item" [class.needs-qty]="item.qtyLeft === null">
+            <div class="info">
+              <span class="name">{{ item.name }}</span>
+              <span class="meta">
+                {{ item.size ?? 'Not in the product list' }}
+              </span>
+            </div>
+
+            <div class="qty" role="group" [attr.aria-label]="'Quantity left of ' + item.name">
+              <button mat-icon-button type="button" (click)="bump(item, -1)" [disabled]="!item.qtyLeft"
+                      aria-label="One less">
+                <mat-icon svgIcon="remove" />
+              </button>
+              <input
+                class="tag-input"
+                [class.out]="item.qtyLeft === 0"
+                [id]="'qty-' + item.key"
+                type="number"
+                inputmode="numeric"
+                min="0"
+                max="9999"
+                placeholder="?"
+                [value]="item.qtyLeft ?? ''"
+                (input)="setQty(item, $any($event.target).value)"
+                (focus)="$any($event.target).select()"
+                aria-label="Quantity left"
+              />
+              <button mat-icon-button type="button" (click)="bump(item, 1)" aria-label="One more">
+                <mat-icon svgIcon="add" />
+              </button>
+            </div>
+
+            <button mat-icon-button class="remove" type="button" (click)="remove(item)"
+                    [attr.aria-label]="'Remove ' + item.name">
+              <mat-icon svgIcon="close" />
+            </button>
+
+            <div class="note-row">
+              @if (item.showNote || item.note) {
+                <input
+                  class="note-input"
+                  [value]="item.note ?? ''"
+                  (input)="patch(item, { note: $any($event.target).value })"
+                  placeholder="Note for the manager"
+                  [attr.aria-label]="'Note for ' + item.name"
+                  maxlength="200"
+                />
+              } @else {
+                <button class="link" type="button" (click)="patch(item, { showNote: true })">Add note</button>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    } @else {
+      <div class="empty">
+        <mat-icon [svgIcon]="category()?.icon ?? 'inventory_2'" />
+        <p>
+          Walk the {{ category()?.name?.toLowerCase() ?? 'shelf' }} and search for anything that's low.
+          @if (!category()?.productCount) {
+            There's no product list for this category yet, so type the name as it appears on the pack.
+          }
+        </p>
+      </div>
+    }
+
+    <div class="bar">
+      <span class="summary">
+        @if (missingQty()) {
+          Set the quantity left for {{ missingQty() === 1 ? '1 item' : missingQty() + ' items' }}
+        } @else if (items().length) {
+          {{ items().length }} {{ items().length === 1 ? 'item' : 'items' }}@if (outCount()) {, {{ outCount() }} out}
+        } @else {
+          Nothing added yet
+        }
+      </span>
+      <button mat-flat-button [disabled]="!canReview()" (click)="review()">Review list</button>
+    </div>
+  } @else {
+    <!-- Review ---------------------------------------------------------->
+    <ul class="review">
+      @for (item of items(); track item.key) {
+        <li>
+          <app-qty-tag [value]="item.qtyLeft" [compact]="true" />
+          <span class="info">
+            <span class="name">{{ item.name }}</span>
+            <span class="meta">{{ item.size ?? 'Not in the product list' }}</span>
+            @if (item.note) {
+              <span class="item-note">{{ item.note }}</span>
+            }
+          </span>
+        </li>
+      }
+    </ul>
+
+    <mat-form-field appearance="outline" class="note-field">
+      <mat-label>Note for the manager (optional)</mat-label>
+      <textarea matInput rows="2" maxlength="500" [ngModel]="note()" (ngModelChange)="note.set($event)"
+                placeholder="For example: fridge 2 is nearly empty"></textarea>
+    </mat-form-field>
+
+    <div class="bar">
+      <button mat-button (click)="step.set('build')">Edit list</button>
+      <button mat-flat-button (click)="send()" [disabled]="sending()">
+        <mat-icon svgIcon="send" />
+        {{ sending() ? 'Sending…' : 'Send to manager' }}
+      </button>
+    </div>
+  }
+</div>

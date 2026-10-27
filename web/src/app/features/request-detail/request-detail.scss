@@ -1,0 +1,226 @@
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8px 16px 0;
+  min-height: calc(100dvh - 56px);
+  display: flex;
+  flex-direction: column;
+}
+
+.back {
+  align-self: flex-start;
+  margin-left: -12px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+
+  .title {
+    flex: 1;
+    min-width: 0;
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    line-height: 1.1;
+  }
+}
+
+.cat-icon {
+  width: 40px;
+  height: 40px;
+  color: var(--action);
+}
+
+.sub {
+  margin: 2px 0 0;
+  color: var(--muted);
+}
+
+// ---- Progress -----------------------------------------------------------------
+.stages {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 20px 0 16px;
+  padding: 0;
+
+  li {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding-top: 22px;
+    color: var(--muted);
+  }
+
+  // The line joining the markers
+  li::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--line);
+  }
+  li:first-child::before {
+    left: 6px;
+  }
+  li:last-child::before {
+    right: auto;
+    width: 6px;
+  }
+  li.done::before {
+    background: var(--ok);
+  }
+
+  .marker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--line);
+    box-sizing: border-box;
+  }
+  li.done .marker {
+    background: var(--ok);
+    border-color: var(--ok);
+  }
+
+  .label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--ink);
+  }
+  li:not(.done) .label {
+    color: var(--muted);
+  }
+  .at {
+    font-size: 0.8rem;
+  }
+}
+
+.note {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  background: #fff;
+  border-left: 4px solid var(--action);
+  border-radius: 6px;
+
+  mat-icon {
+    flex: none;
+    color: var(--action);
+  }
+}
+
+// ---- Items ------------------------------------------------------------------
+.sheet {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 24px;
+
+  h2 {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 0;
+    padding: 14px 14px 10px;
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .out-count {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--out);
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+  }
+
+  li + li {
+    border-top: 1px solid var(--line);
+  }
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-weight: 600;
+  font-size: 1.02rem;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.flag {
+  color: var(--action);
+  font-weight: 500;
+}
+
+.item-note {
+  margin-top: 2px;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: auto -16px 0;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1px solid var(--line);
+
+  span {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  button {
+    flex: none;
+    white-space: nowrap;
+    height: 48px;
+    padding: 0 20px;
+    font-size: 1rem;
+  }
+}
+
+.missing {
+  margin-top: 32px;
+  color: var(--muted);
+}

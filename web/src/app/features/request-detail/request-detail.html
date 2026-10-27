@@ -1,0 +1,82 @@
+<div class="page">
+  <a mat-button class="back" [routerLink]="auth.homeUrl()">
+    <mat-icon svgIcon="arrow_back" />
+    {{ auth.isManager() ? 'All requests' : 'Back' }}
+  </a>
+
+  @if (request(); as r) {
+    <header class="head">
+      <mat-icon [svgIcon]="r.categoryIcon" class="cat-icon" />
+      <div class="title">
+        <h1>{{ r.categoryName }}</h1>
+        <p class="sub">
+          @if (auth.isManager()) {
+            From {{ r.staffName }}, {{ r.createdAt | timeAgo }}
+          } @else {
+            Sent {{ r.createdAt | timeAgo }}
+          }
+        </p>
+      </div>
+      <app-status-pill [status]="r.status" />
+    </header>
+
+    <!-- Progress: a real sequence, so the steps are shown in order -->
+    <ol class="stages" aria-label="Progress">
+      @for (s of stages(); track s.label) {
+        <li [class.done]="s.at">
+          <span class="marker" aria-hidden="true"></span>
+          <span class="label">{{ s.label }}</span>
+          <span class="at">{{ s.at ? (s.at | date: 'EEE d MMM, HH:mm') : 'Not yet' }}</span>
+        </li>
+      }
+    </ol>
+
+    @if (r.note) {
+      <blockquote class="note">
+        <mat-icon svgIcon="sticky_note_2" />
+        <span>{{ r.note }}</span>
+      </blockquote>
+    }
+
+    <section class="sheet">
+      <h2>
+        {{ r.items.length }} {{ r.items.length === 1 ? 'item' : 'items' }}
+        @if (outCount()) {
+          <span class="out-count">{{ outCount() }} out of stock</span>
+        }
+      </h2>
+      <ul>
+        @for (item of r.items; track item.id) {
+          <li>
+            <span class="info">
+              <span class="name">{{ item.name }}</span>
+              <span class="meta">
+                @if (item.isFreeText) {
+                  <span class="flag">Not in the product list</span>
+                } @else {
+                  {{ item.size }}
+                }
+              </span>
+              @if (item.note) {
+                <span class="item-note">{{ item.note }}</span>
+              }
+            </span>
+            <app-qty-tag [value]="item.qtyLeft" />
+          </li>
+        }
+      </ul>
+    </section>
+
+    @if (auth.isManager() && r.status !== 'Ordered') {
+      <div class="bar">
+        <span>Ordered from the supplier?</span>
+        <button mat-flat-button (click)="markOrdered()" [disabled]="saving()">
+          <mat-icon svgIcon="local_shipping" />
+          Mark as ordered
+        </button>
+      </div>
+    }
+  } @else if (notFound()) {
+    <p class="missing">This request doesn't exist or isn't yours to view.</p>
+  }
+</div>
